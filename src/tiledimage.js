@@ -1537,7 +1537,9 @@ function loadTile( tiledImage, tile, time ) {
  */
 function onTileLoad( tiledImage, tile, time, image, errorMsg, tileRequest ) {
     if ( !image ) {
-        $.console.log( "Tile %s failed to load: %s - error: %s", tile, tile.url, errorMsg );
+        if ( errorMsg ) {
+            $.console.log( "Tile %s failed to load: %s - error: %s", tile, tile.url, errorMsg );
+        }
         /**
          * Triggered when a tile fails to load.
          *
