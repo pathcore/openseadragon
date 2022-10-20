@@ -43,6 +43,9 @@
         "grunt-text-replace": "^0.4.0",
         "qunitjs": "2.4.1"
     },
+    "resolutions": {
+        "grunt-contrib-uglify/uglify-js": "<= 3.14.5"
+    },
     "scripts": {
         "test": "grunt test",
         "prepare": "grunt build"
