@@ -1455,9 +1455,9 @@
                 }
                 if (options.crossOriginPolicy === undefined) {
                     options.crossOriginPolicy =
-                        options.tileSource.crossOriginPolicy !== undefined
-                            ? options.tileSource.crossOriginPolicy
-                            : this.crossOriginPolicy;
+                        options.tileSource.crossOriginPolicy !== undefined ?
+                            options.tileSource.crossOriginPolicy :
+                            this.crossOriginPolicy;
                 }
                 if (options.ajaxWithCredentials === undefined) {
                     options.ajaxWithCredentials = this.ajaxWithCredentials;
@@ -1804,9 +1804,9 @@
                     }
 
                     this.previousButton = new $.Button({
-                        element: this.previousButton
-                            ? $.getElement(this.previousButton)
-                            : null,
+                        element: this.previousButton ?
+                            $.getElement(this.previousButton) :
+                            null,
                         clickTimeThreshold: this.clickTimeThreshold,
                         clickDistThreshold: this.clickDistThreshold,
                         tooltip: $.getString("Tooltips.PreviousPage"),
@@ -1832,9 +1832,9 @@
                     });
 
                     this.nextButton = new $.Button({
-                        element: this.nextButton
-                            ? $.getElement(this.nextButton)
-                            : null,
+                        element: this.nextButton ?
+                            $.getElement(this.nextButton) :
+                            null,
                         clickTimeThreshold: this.clickTimeThreshold,
                         clickDistThreshold: this.clickDistThreshold,
                         tooltip: $.getString("Tooltips.NextPage"),
@@ -1934,9 +1934,9 @@
                     if (this.showZoomControl) {
                         buttons.push(
                             (this.zoomInButton = new $.Button({
-                                element: this.zoomInButton
-                                    ? $.getElement(this.zoomInButton)
-                                    : null,
+                                element: this.zoomInButton ?
+                                    $.getElement(this.zoomInButton) :
+                                    null,
                                 clickTimeThreshold: this.clickTimeThreshold,
                                 clickDistThreshold: this.clickDistThreshold,
                                 tooltip: $.getString("Tooltips.ZoomIn"),
@@ -1968,9 +1968,9 @@
 
                         buttons.push(
                             (this.zoomOutButton = new $.Button({
-                                element: this.zoomOutButton
-                                    ? $.getElement(this.zoomOutButton)
-                                    : null,
+                                element: this.zoomOutButton ?
+                                    $.getElement(this.zoomOutButton) :
+                                    null,
                                 clickTimeThreshold: this.clickTimeThreshold,
                                 clickDistThreshold: this.clickDistThreshold,
                                 tooltip: $.getString("Tooltips.ZoomOut"),
@@ -2004,9 +2004,9 @@
                     if (this.showHomeControl) {
                         buttons.push(
                             (this.homeButton = new $.Button({
-                                element: this.homeButton
-                                    ? $.getElement(this.homeButton)
-                                    : null,
+                                element: this.homeButton ?
+                                    $.getElement(this.homeButton) :
+                                    null,
                                 clickTimeThreshold: this.clickTimeThreshold,
                                 clickDistThreshold: this.clickDistThreshold,
                                 tooltip: $.getString("Tooltips.Home"),
@@ -2036,9 +2036,9 @@
                     if (this.showFullPageControl) {
                         buttons.push(
                             (this.fullPageButton = new $.Button({
-                                element: this.fullPageButton
-                                    ? $.getElement(this.fullPageButton)
-                                    : null,
+                                element: this.fullPageButton ?
+                                    $.getElement(this.fullPageButton) :
+                                    null,
                                 clickTimeThreshold: this.clickTimeThreshold,
                                 clickDistThreshold: this.clickDistThreshold,
                                 tooltip: $.getString("Tooltips.FullPage"),
@@ -2068,9 +2068,9 @@
                     if (this.showRotationControl) {
                         buttons.push(
                             (this.rotateLeftButton = new $.Button({
-                                element: this.rotateLeftButton
-                                    ? $.getElement(this.rotateLeftButton)
-                                    : null,
+                                element: this.rotateLeftButton ?
+                                    $.getElement(this.rotateLeftButton) :
+                                    null,
                                 clickTimeThreshold: this.clickTimeThreshold,
                                 clickDistThreshold: this.clickDistThreshold,
                                 tooltip: $.getString("Tooltips.RotateLeft"),
@@ -2098,9 +2098,9 @@
 
                         buttons.push(
                             (this.rotateRightButton = new $.Button({
-                                element: this.rotateRightButton
-                                    ? $.getElement(this.rotateRightButton)
-                                    : null,
+                                element: this.rotateRightButton ?
+                                    $.getElement(this.rotateRightButton) :
+                                    null,
                                 clickTimeThreshold: this.clickTimeThreshold,
                                 clickDistThreshold: this.clickDistThreshold,
                                 tooltip: $.getString("Tooltips.RotateRight"),
@@ -2130,9 +2130,9 @@
                     if (this.showFlipControl) {
                         buttons.push(
                             (this.flipButton = new $.Button({
-                                element: this.flipButton
-                                    ? $.getElement(this.flipButton)
-                                    : null,
+                                element: this.flipButton ?
+                                    $.getElement(this.flipButton) :
+                                    null,
                                 clickTimeThreshold: this.clickTimeThreshold,
                                 clickDistThreshold: this.clickDistThreshold,
                                 tooltip: $.getString("Tooltips.Flip"),
@@ -2726,13 +2726,13 @@
                 tileSource = new $.TileSource({
                     url: tileSource,
                     crossOriginPolicy:
-                        imgOptions.crossOriginPolicy !== undefined
-                            ? imgOptions.crossOriginPolicy
-                            : viewer.crossOriginPolicy,
+                        imgOptions.crossOriginPolicy !== undefined ?
+                            imgOptions.crossOriginPolicy :
+                            viewer.crossOriginPolicy,
                     ajaxWithCredentials: viewer.ajaxWithCredentials,
-                    ajaxHeaders: imgOptions.ajaxHeaders
-                        ? imgOptions.ajaxHeaders
-                        : viewer.ajaxHeaders,
+                    ajaxHeaders: imgOptions.ajaxHeaders ?
+                        imgOptions.ajaxHeaders :
+                        viewer.ajaxHeaders,
                     splitHashDataForPost: viewer.splitHashDataForPost,
                     useCanvas: viewer.useCanvas,
                     success: function (event) {
@@ -2749,9 +2749,9 @@
                         viewer.crossOriginPolicy !== undefined)
                 ) {
                     tileSource.crossOriginPolicy =
-                        imgOptions.crossOriginPolicy !== undefined
-                            ? imgOptions.crossOriginPolicy
-                            : viewer.crossOriginPolicy;
+                        imgOptions.crossOriginPolicy !== undefined ?
+                            imgOptions.crossOriginPolicy :
+                            viewer.crossOriginPolicy;
                 }
                 if (tileSource.ajaxWithCredentials === undefined) {
                     tileSource.ajaxWithCredentials = viewer.ajaxWithCredentials;
@@ -2799,9 +2799,9 @@
         if (overlay.element) {
             element = $.getElement(overlay.element);
         } else {
-            var id = overlay.id
-                ? overlay.id
-                : "openseadragon-overlay-" +
+            var id = overlay.id ?
+                overlay.id :
+                "openseadragon-overlay-" +
                   Math.floor(Math.random() * 10000000);
 
             element = $.getElement(overlay.id);
@@ -3259,9 +3259,9 @@
             if (gestureSettings.clickToZoom) {
                 this.viewport.zoomBy(
                     event.shift ? 1.0 / this.zoomPerClick : this.zoomPerClick,
-                    gestureSettings.zoomToRefPoint
-                        ? this.viewport.pointFromPixel(event.position, true)
-                        : null
+                    gestureSettings.zoomToRefPoint ?
+                        this.viewport.pointFromPixel(event.position, true) :
+                        null
                 );
                 this.viewport.applyConstraints();
             }
@@ -3302,9 +3302,9 @@
             if (gestureSettings.dblClickToZoom) {
                 this.viewport.zoomBy(
                     event.shift ? 1.0 / this.zoomPerClick : this.zoomPerClick,
-                    gestureSettings.zoomToRefPoint
-                        ? this.viewport.pointFromPixel(event.position, true)
-                        : null
+                    gestureSettings.zoomToRefPoint ?
+                        this.viewport.pointFromPixel(event.position, true) :
+                        null
                 );
                 this.viewport.applyConstraints();
             }
@@ -3784,9 +3784,9 @@
                     factor = Math.pow(this.zoomPerScroll, event.scroll);
                     this.viewport.zoomBy(
                         factor,
-                        gestureSettings.zoomToRefPoint
-                            ? this.viewport.pointFromPixel(event.position, true)
-                            : null
+                        gestureSettings.zoomToRefPoint ?
+                            this.viewport.pointFromPixel(event.position, true) :
+                            null
                     );
                     this.viewport.applyConstraints();
                 }

@@ -391,14 +391,14 @@
              * @returns {OpenSeadragon.Rect} This TiledImage's bounds in viewport coordinates.
              */
             getBoundsNoRotate: function (current) {
-                return current
-                    ? new $.Rect(
+                return current ?
+                    new $.Rect(
                           this._xSpring.current.value,
                           this._ySpring.current.value,
                           this._worldWidthCurrent,
                           this._worldHeightCurrent
-                      )
-                    : new $.Rect(
+                      ) :
+                    new $.Rect(
                           this._xSpring.target.value,
                           this._ySpring.target.value,
                           this._worldWidthTarget,
@@ -423,9 +423,9 @@
             getClippedBounds: function (current) {
                 var bounds = this.getBoundsNoRotate(current);
                 if (this._clip) {
-                    var worldWidth = current
-                        ? this._worldWidthCurrent
-                        : this._worldWidthTarget;
+                    var worldWidth = current ?
+                        this._worldWidthCurrent :
+                        this._worldWidthTarget;
                     var ratio = worldWidth / this.source.dimensions.x;
                     var clip = this._clip.times(ratio);
                     bounds = new $.Rect(
@@ -489,9 +489,9 @@
 
             // private
             _viewportToImageDelta: function (viewerX, viewerY, current) {
-                var scale = current
-                    ? this._scaleSpring.current.value
-                    : this._scaleSpring.target.value;
+                var scale = current ?
+                    this._scaleSpring.current.value :
+                    this._scaleSpring.target.value;
                 return new $.Point(
                     viewerX * (this.source.dimensions.x / scale),
                     viewerY *
@@ -522,12 +522,12 @@
                     -this.getRotation(current),
                     this._getRotationPoint(current)
                 );
-                return current
-                    ? this._viewportToImageDelta(
+                return current ?
+                    this._viewportToImageDelta(
                           point.x - this._xSpring.current.value,
                           point.y - this._ySpring.current.value
-                      )
-                    : this._viewportToImageDelta(
+                      ) :
+                    this._viewportToImageDelta(
                           point.x - this._xSpring.target.value,
                           point.y - this._ySpring.target.value
                       );
@@ -535,9 +535,9 @@
 
             // private
             _imageToViewportDelta: function (imageX, imageY, current) {
-                var scale = current
-                    ? this._scaleSpring.current.value
-                    : this._scaleSpring.target.value;
+                var scale = current ?
+                    this._scaleSpring.current.value :
+                    this._scaleSpring.target.value;
                 return new $.Point(
                     (imageX / this.source.dimensions.x) * scale,
                     (imageY / this.source.dimensions.y / this.contentAspectX) *
@@ -1082,9 +1082,9 @@
              * @returns {Number} the rotation of this tiled image in degrees.
              */
             getRotation: function (current) {
-                return current
-                    ? this._degreesSpring.current.value
-                    : this._degreesSpring.target.value;
+                return current ?
+                    this._degreesSpring.current.value :
+                    this._degreesSpring.target.value;
             },
 
             /**
@@ -1324,9 +1324,9 @@
                             false
                         ).x * this._scaleSpring.current.value;
 
-                    var optimalRatio = this.immediateRender
-                        ? 1
-                        : targetZeroRatio;
+                    var optimalRatio = this.immediateRender ?
+                        1 :
+                        targetZeroRatio;
                     var levelOpacity = Math.min(
                         1,
                         (currentRenderPixelRatio - 0.5) / 0.5
@@ -1763,9 +1763,9 @@
                         ajaxHeaders = null;
                     }
 
-                    context2D = tileSource.getContext2D
-                        ? tileSource.getContext2D(level, xMod, yMod)
-                        : undefined;
+                    context2D = tileSource.getContext2D ?
+                        tileSource.getContext2D(level, xMod, yMod) :
+                        undefined;
 
                     tile = new $.Tile(
                         level,
@@ -1829,7 +1829,7 @@
                     postData: tile.postData,
                     loadWithAjax: tile.loadWithAjax,
                     ajaxHeaders: tile.ajaxHeaders,
-                    CustomImageJob: tiledImage.CustomImageJob,
+                    CustomImageJob: this.CustomImageJob,
                     crossOriginPolicy: this.crossOriginPolicy,
                     ajaxWithCredentials: this.ajaxWithCredentials,
                     callback: function (image, errorMsg, tileRequest) {
@@ -2075,9 +2075,9 @@
                 }
 
                 deltaTime = currentTime - tile.blendStart;
-                opacity = blendTimeMillis
-                    ? Math.min(1, deltaTime / blendTimeMillis)
-                    : 1;
+                opacity = blendTimeMillis ?
+                    Math.min(1, deltaTime / blendTimeMillis) :
+                    1;
 
                 if (this.alwaysBlend) {
                     opacity *= levelOpacity;

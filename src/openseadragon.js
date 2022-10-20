@@ -859,9 +859,9 @@ function OpenSeadragon(options) {
      * @see {@link http://www.jquery.com/ jQuery}
      */
     $.type = function (obj) {
-        return obj === null || obj === undefined
-            ? String(obj)
-            : class2type[toString.call(obj)] || "object";
+        return obj === null || obj === undefined ?
+            String(obj) :
+            class2type[toString.call(obj)] || "object";
     };
 
     /**
@@ -1127,9 +1127,9 @@ function OpenSeadragon(options) {
                                 src && OpenSeadragon.isArray(src) ? src : [];
                         } else {
                             clone =
-                                src && OpenSeadragon.isPlainObject(src)
-                                    ? src
-                                    : {};
+                                src && OpenSeadragon.isPlainObject(src) ?
+                                    src :
+                                    {};
                         }
 
                         // Never move original objects, clone them
@@ -1570,11 +1570,11 @@ function OpenSeadragon(options) {
                 }
 
                 win =
-                    doc === doc.window
-                        ? doc
-                        : doc.nodeType === 9
-                        ? doc.defaultView || doc.parentWindow
-                        : false;
+                    doc === doc.window ?
+                        doc :
+                        doc.nodeType === 9 ?
+                        doc.defaultView || doc.parentWindow :
+                        false;
 
                 return new $.Point(
                     boundingRect.left +
@@ -1604,12 +1604,12 @@ function OpenSeadragon(options) {
              * @param {Element|String} element
              * @returns {CSSStyle}
              */
-            getElementStyle: document.documentElement.currentStyle
-                ? function (element) {
+            getElementStyle: document.documentElement.currentStyle ?
+                function (element) {
                       element = $.getElement(element);
                       return element.currentStyle;
-                  }
-                : function (element) {
+                  } :
+                function (element) {
                       element = $.getElement(element);
                       return window.getComputedStyle(element, "");
                   },
@@ -2138,23 +2138,23 @@ function OpenSeadragon(options) {
                 if (typeof options !== "undefined") {
                     if (typeof options === "boolean") {
                         // Legacy Boolean useCapture
-                        opts = $.supportsEventListenerOptions
-                            ? { capture: options }
-                            : options;
+                        opts = $.supportsEventListenerOptions ?
+                            { capture: options } :
+                            options;
                     } else {
                         // Options object
-                        opts = $.supportsEventListenerOptions
-                            ? options
-                            : typeof options.capture !== "undefined"
-                            ? options.capture
-                            : false;
+                        opts = $.supportsEventListenerOptions ?
+                            options :
+                            typeof options.capture !== "undefined" ?
+                            options.capture :
+                            false;
                     }
                 } else {
                     // No options specified - Legacy optional useCapture argument
                     //   (for IE, first supported on version 9, so we'll pass a Boolean)
-                    opts = $.supportsEventListenerOptions
-                        ? { capture: false }
-                        : false;
+                    opts = $.supportsEventListenerOptions ?
+                        { capture: false } :
+                        false;
                 }
                 return opts;
             },
@@ -2748,9 +2748,9 @@ function OpenSeadragon(options) {
                         );
                     } else if (ua.indexOf("Safari") >= 0) {
                         $.Browser.vendor =
-                            ua.indexOf("Chrome") >= 0
-                                ? $.BROWSERS.CHROME
-                                : $.BROWSERS.SAFARI;
+                            ua.indexOf("Chrome") >= 0 ?
+                                $.BROWSERS.CHROME :
+                                $.BROWSERS.SAFARI;
                         $.Browser.version = parseFloat(
                             ua.substring(
                                 ua
