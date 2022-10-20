@@ -46,14 +46,17 @@
  *      this tile failed to load? )
  * @param {String} url The URL of this tile's image.
  * @param {CanvasRenderingContext2D} context2D The context2D of this tile if it
- * is provided directly by the tile source.
+ *      is provided directly by the tile source.
  * @param {Boolean} loadWithAjax Whether this tile image should be loaded with an AJAX request .
  * @param {Object} ajaxHeaders The headers to send with this tile's AJAX request (if applicable).
  * @param {OpenSeadragon.Rect} sourceBounds The portion of the tile to use as the source of the
- * drawing operation, in pixels. Note that this only works when drawing with canvas; when drawing
- * with HTML the entire tile is always used.
+ *      drawing operation, in pixels. Note that this only works when drawing with canvas; when drawing
+ *      with HTML the entire tile is always used.
+ * @param {String} postData HTTP POST data (usually but not necessarily in k=v&k2=v2... form,
+ *      see TileSrouce::getPostData) or null
+ * @param {String} cacheKey key to act as a tile cache, must be unique for tiles with unique image data
  */
-$.Tile = function(level, x, y, bounds, exists, url, context2D, loadWithAjax, ajaxHeaders, sourceBounds) {
+$.Tile = function(level, x, y, bounds, exists, url, context2D, loadWithAjax, ajaxHeaders, sourceBounds, postData, cacheKey) {
     /**
      * The zoom level this tile belongs to.
      * @member {Number} level
@@ -98,6 +101,14 @@ $.Tile = function(level, x, y, bounds, exists, url, context2D, loadWithAjax, aja
      */
     this.url     = url;
     /**
+     * Post parameters for this tile. For example, it can be an URL-encoded string
+     * in k1=v1&k2=v2... format, or a JSON, or a FormData instance... or null if no POST request used
+     * @member {String} postData HTTP POST data (usually but not necessarily in k=v&k2=v2... form,
+     *      see TileSrouce::getPostData) or null
+     * @memberof OpenSeadragon.Tile#
+     */
+    this.postData  = postData;
+    /**
      * The context2D of this tile if it is provided directly by the tile source.
      * @member {CanvasRenderingContext2D} context2D
      * @memberOf OpenSeadragon.Tile#
@@ -121,11 +132,13 @@ $.Tile = function(level, x, y, bounds, exists, url, context2D, loadWithAjax, aja
      * @member {String} cacheKey
      * @memberof OpenSeadragon.Tile#
      */
-    if (this.ajaxHeaders) {
-        this.cacheKey = this.url + "+" + JSON.stringify(this.ajaxHeaders);
-    } else {
-        this.cacheKey = this.url;
+    if (cacheKey === undefined) {
+        $.console.error("Tile constructor needs 'cacheKey' variable: creation tile cache" +
+            " in Tile class is deprecated. TileSource.prototype.getTileHashKey will be used.");
+        cacheKey = $.TileSource.prototype.getTileHashKey(level, x, y, url, ajaxHeaders, postData);
     }
+    this.cacheKey = cacheKey;
+
     /**
      * Is this tile loaded?
      * @member {Boolean} loaded
@@ -176,6 +189,12 @@ $.Tile = function(level, x, y, bounds, exists, url, context2D, loadWithAjax, aja
      * @memberof OpenSeadragon.Tile#
      */
     this.size       = null;
+    /**
+     * Whether to flip the tile when rendering.
+     * @member {Boolean} flipped
+     * @memberof OpenSeadragon.Tile#
+     */
+    this.flipped    = false;
     /**
      * The start time of this tile's blending.
      * @member {Number} blendStart
@@ -284,10 +303,10 @@ $.Tile.prototype = {
             this.style                     = this.element.style;
             this.style.position            = "absolute";
         }
-        if ( this.element.parentNode != container ) {
+        if ( this.element.parentNode !== container ) {
             container.appendChild( this.element );
         }
-        if ( this.imgElement.parentNode != this.element ) {
+        if ( this.imgElement.parentNode !== this.element ) {
             this.element.appendChild( this.imgElement );
         }
 
@@ -295,6 +314,10 @@ $.Tile.prototype = {
         this.style.left    = this.position.x + "px";
         this.style.height  = this.size.y + "px";
         this.style.width   = this.size.x + "px";
+
+        if (this.flipped) {
+            this.style.transform = "scaleX(-1)";
+        }
 
         $.setElementOpacity( this.element, this.opacity );
     },
@@ -308,8 +331,11 @@ $.Tile.prototype = {
      * where <code>rendered</code> is the context with the pre-drawn image.
      * @param {Number} [scale=1] - Apply a scale to position and size
      * @param {OpenSeadragon.Point} [translate] - A translation vector
+     * @param {Boolean} [shouldRoundPositionAndSize] - Tells whether to round
+     * position and size of tiles supporting alpha channel in non-transparency
+     * context.
      */
-    drawCanvas: function( context, drawingHandler, scale, translate ) {
+    drawCanvas: function( context, drawingHandler, scale, translate, shouldRoundPositionAndSize ) {
 
         var position = this.position.times($.pixelDensityRatio),
             size     = this.size.times($.pixelDensityRatio),
@@ -353,6 +379,14 @@ $.Tile.prototype = {
         //an image with an alpha channel, then the only way
         //to avoid seeing the tile underneath is to clear the rectangle
         if (context.globalAlpha === 1 && this._hasTransparencyChannel()) {
+            if (shouldRoundPositionAndSize) {
+                // Round to the nearest whole pixel so we don't get seams from overlap.
+                position.x = Math.round(position.x);
+                position.y = Math.round(position.y);
+                size.x = Math.round(size.x);
+                size.y = Math.round(size.y);
+            }
+
             //clearing only the inside of the rectangle occupied
             //by the png prevents edge flikering
             context.clearRect(
@@ -376,13 +410,17 @@ $.Tile.prototype = {
             sourceHeight = rendered.canvas.height;
         }
 
+        context.translate(position.x + size.x / 2, 0);
+        if (this.flipped) {
+            context.scale(-1, 1);
+        }
         context.drawImage(
             rendered.canvas,
             0,
             0,
             sourceWidth,
             sourceHeight,
-            position.x,
+            -size.x / 2,
             position.y,
             size.x,
             size.y

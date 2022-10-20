@@ -126,6 +126,10 @@ $.Drawer = function( options ) {
     this.canvas.style.height    = "100%";
     this.canvas.style.position  = "absolute";
     $.setElementOpacity( this.canvas, this.opacity, true );
+    // Allow pointer events to pass through the canvas element so implicit
+    //   pointer capture works on touch devices
+    $.setElementPointerEventsNone( this.canvas );
+    $.setElementTouchActionNone( this.canvas );
 
     // explicit left-align
     this.container.style.textAlign = "left";
@@ -184,7 +188,7 @@ $.Drawer.prototype = {
     /**
      * This function will create multiple polygon paths on the drawing context by provided polygons,
      * then clip the context to the paths.
-     * @param {(OpenSeadragon.Point[])[]} polygons - an array of polygons. A polygon is an array of OpenSeadragon.Point
+     * @param {OpenSeadragon.Point[][]} polygons - an array of polygons. A polygon is an array of OpenSeadragon.Point
      * @param {Boolean} useSketch - Whether to use the sketch canvas or not.
      */
     clipWithPolygons: function (polygons, useSketch) {
@@ -284,8 +288,8 @@ $.Drawer.prototype = {
         this.canvas.innerHTML = "";
         if ( this.useCanvas ) {
             var viewportSize = this._calculateCanvasSize();
-            if( this.canvas.width != viewportSize.x ||
-                this.canvas.height != viewportSize.y ) {
+            if( this.canvas.width !== viewportSize.x ||
+                this.canvas.height !== viewportSize.y ) {
                 this.canvas.width = viewportSize.x;
                 this.canvas.height = viewportSize.y;
                 this._updateImageSmoothingEnabled(this.context);
@@ -340,15 +344,18 @@ $.Drawer.prototype = {
      * where <code>rendered</code> is the context with the pre-drawn image.
      * @param {Float} [scale=1] - Apply a scale to tile position and size. Defaults to 1.
      * @param {OpenSeadragon.Point} [translate] A translation vector to offset tile position
+     * @param {Boolean} [shouldRoundPositionAndSize] - Tells whether to round
+     * position and size of tiles supporting alpha channel in non-transparency
+     * context.
      */
-    drawTile: function(tile, drawingHandler, useSketch, scale, translate) {
+    drawTile: function(tile, drawingHandler, useSketch, scale, translate, shouldRoundPositionAndSize) {
         $.console.assert(tile, '[Drawer.drawTile] tile is required');
         $.console.assert(drawingHandler, '[Drawer.drawTile] drawingHandler is required');
 
         if (this.useCanvas) {
             var context = this._getContext(useSketch);
             scale = scale || 1;
-            tile.drawCanvas(context, drawingHandler, scale, translate);
+            tile.drawCanvas(context, drawingHandler, scale, translate, shouldRoundPositionAndSize);
         } else {
             tile.drawHTML( this.canvas );
         }

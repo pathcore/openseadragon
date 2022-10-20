@@ -69,6 +69,9 @@
  *      the XHR's withCredentials (for accessing secure data).
  * @param {Object} [options.ajaxHeaders]
  *      A set of headers to include in AJAX requests.
+ * @param {Boolean} [options.splitHashDataForPost]
+ *      First occurrence of '#' in the options.url is used to split URL
+ *      and the latter part is treated as POST data (applies to getImageInfo(...))
  * @param {Number} [options.width]
  *      Width of the source image at max resolution in pixels.
  * @param {Number} [options.height]
@@ -167,7 +170,7 @@ $.TileSource = function( width, height, tileSize, tileOverlap, minLevel, maxLeve
      * @memberof OpenSeadragon.TileSource#
      */
 
-    if( 'string' == $.type( arguments[ 0 ] ) ){
+    if( 'string' === $.type( arguments[ 0 ] ) ){
         this.url = arguments[0];
     }
 
@@ -276,11 +279,31 @@ $.TileSource.prototype = {
     },
 
     /**
+     * Set the maxLevel to the given level, and perform the memoization of
+     * getLevelScale with the new maxLevel. This function can be useful if the
+     * memoization is required before the first call of getLevelScale, or both
+     * memoized getLevelScale and maxLevel should be changed accordingly.
+     * @function
+     * @param {Number} level
+     */
+    setMaxLevel: function( level ) {
+        this.maxLevel = level;
+        this._memoizeLevelScale();
+    },
+
+    /**
      * @function
      * @param {Number} level
      */
     getLevelScale: function( level ) {
+        // if getLevelScale is not memoized, we generate the memoized version
+        // at the first call and return the result
+        this._memoizeLevelScale();
+        return this.getLevelScale( level );
+    },
 
+    // private
+    _memoizeLevelScale: function() {
         // see https://github.com/openseadragon/openseadragon/issues/22
         // we use the tilesources implementation of getLevelScale to generate
         // a memoized re-implementation
@@ -292,7 +315,6 @@ $.TileSource.prototype = {
         this.getLevelScale = function( _level ){
             return levelScaleCache[ _level ];
         };
-        return this.getLevelScale( level );
     },
 
     /**
@@ -313,8 +335,8 @@ $.TileSource.prototype = {
      */
     getPixelRatio: function( level ) {
         var imageSizeScaled = this.dimensions.times( this.getLevelScale( level ) ),
-            rx = 1.0 / imageSizeScaled.x,
-            ry = 1.0 / imageSizeScaled.y;
+            rx = 1.0 / imageSizeScaled.x * $.pixelDensityRatio,
+            ry = 1.0 / imageSizeScaled.y * $.pixelDensityRatio;
 
         return new $.Point(rx, ry);
     },
@@ -426,6 +448,15 @@ $.TileSource.prototype = {
             }
         }
 
+        var postData = null;
+        if (this.splitHashDataForPost) {
+            var hashIdx = url.indexOf("#");
+            if (hashIdx !== -1) {
+                postData = url.substring(hashIdx + 1);
+                url = url.substr(0, hashIdx);
+            }
+        }
+
         callback = function( data ){
             if( typeof (data) === "string" ) {
                 data = $.parseXml( data );
@@ -447,7 +478,7 @@ $.TileSource.prototype = {
                 return;
             }
 
-            options = $TileSource.prototype.configure.apply( _this, [ data, url ]);
+            options = $TileSource.prototype.configure.apply( _this, [ data, url, postData ]);
             if (options.ajaxWithCredentials === undefined) {
                 options.ajaxWithCredentials = _this.ajaxWithCredentials;
             }
@@ -482,6 +513,7 @@ $.TileSource.prototype = {
             // request info via xhr asynchronously.
             $.makeAjaxRequest( {
                 url: url,
+                postData: postData,
                 withCredentials: this.ajaxWithCredentials,
                 headers: this.ajaxHeaders,
                 success: function( xhr ) {
@@ -497,17 +529,19 @@ $.TileSource.prototype = {
                         exception rather than the second one raised when we try to access xhr.status
                      */
                     try {
-                        msg = "HTTP " + xhr.status + " attempting to load TileSource";
+                        msg = "HTTP " + xhr.status + " attempting to load TileSource: " + url;
                     } catch ( e ) {
                         var formattedExc;
-                        if ( typeof ( exc ) == "undefined" || !exc.toString ) {
+                        if ( typeof ( exc ) === "undefined" || !exc.toString ) {
                             formattedExc = "Unknown error";
                         } else {
                             formattedExc = exc.toString();
                         }
 
-                        msg = formattedExc + " attempting to load TileSource";
+                        msg = formattedExc + " attempting to load TileSource: " + url;
                     }
+
+                    $.console.error(msg);
 
                     /***
                      * Raised when an error occurs loading a TileSource.
@@ -518,11 +552,14 @@ $.TileSource.prototype = {
                      * @property {OpenSeadragon.TileSource} eventSource - A reference to the TileSource which raised the event.
                      * @property {String} message
                      * @property {String} source
+                     * @property {String} postData - HTTP POST data (usually but not necessarily in k=v&k2=v2... form,
+                     *      see TileSrouce::getPostData) or null
                      * @property {?Object} userData - Arbitrary subscriber-defined object.
                      */
                     _this.raiseEvent( 'open-failed', {
                         message: msg,
-                        source: url
+                        source: url,
+                        postData: postData
                     });
                 }
             });
@@ -559,11 +596,14 @@ $.TileSource.prototype = {
      * @param {String|Object|Array|Document} data
      * @param {String} url - the url the data was loaded
      *      from if any.
+     * @param {String} postData - HTTP POST data in k=v&k2=v2... form or null value obtained from
+     *      the protocol URL after '#' sign if flag splitHashDataForPost set to 'true'
      * @return {Object} options - A dictionary of keyword arguments sufficient
-     *      to configure this tile sources constructor.
+     *      to configure the tile source constructor (include all values you want to
+     *      instantiate the TileSource subclass with - what _options_ object should contain).
      * @throws {Error}
      */
-    configure: function( data, url ) {
+    configure: function( data, url, postData ) {
         throw new Error( "Method not implemented." );
     },
 
@@ -585,6 +625,37 @@ $.TileSource.prototype = {
     },
 
     /**
+     * Must use AJAX in order to work, i.e. loadTilesWithAjax = true is set.
+     * If a value is returned, ajax issues POST request to the tile url.
+     * If null is returned, ajax issues GET request.
+     * The return value must comply to the header 'content type'.
+     *
+     * Examples (USED HEADER --> getTilePostData CODE):
+     * 'Content-type': 'application/x-www-form-urlencoded' -->
+     *   return "key1=value=1&key2=value2";
+     *
+     * 'Content-type': 'application/x-www-form-urlencoded' -->
+     *   return JSON.stringify({key: "value", number: 5});
+     *
+     * 'Content-type': 'multipart/form-data' -->
+     *   let result = new FormData();
+     *   result.append("data", myData);
+     *   return result;
+     *
+     * IMPORTANT: in case you move all the logic on image fetching
+     * to post data, you must re-define 'getTileHashKey(...)' to
+     * stay unique for different tile images.
+     *
+     * @param {Number} level
+     * @param {Number} x
+     * @param {Number} y
+     * @return {*|null} post data to send with tile configuration request
+     */
+    getTilePostData: function( level, x, y ) {
+        return null;
+    },
+
+    /**
      * Responsible for retrieving the headers which will be attached to the image request for the
      * region specified by the given x, y, and level components.
      * This option is only relevant if {@link OpenSeadragon.Options}.loadTilesWithAjax is set to true.
@@ -599,6 +670,29 @@ $.TileSource.prototype = {
      */
     getTileAjaxHeaders: function( level, x, y ) {
         return {};
+    },
+
+    /**
+     * The tile cache object is uniquely determined by this key and used to lookup
+     * the image data in cache: keys should be different if images are different.
+     *
+     * In case a tile has context2D property defined (TileSource.prototype.getContext2D)
+     * or its context2D is set manually; the cache is not used and this function
+     * is irrelevant.
+     * Note: default behaviour does not take into account post data.
+     * @param {Number} level tile level it was fetched with
+     * @param {Number} x x-coordinate in the pyramid level
+     * @param {Number} y y-coordinate in the pyramid level
+     * @param {String} url the tile was fetched with
+     * @param {Object} ajaxHeaders the tile was fetched with
+     * @param {*} postData data the tile was fetched with (type depends on getTilePostData(..) return type)
+     */
+    getTileHashKey: function(level, x, y, url, ajaxHeaders, postData) {
+        if (ajaxHeaders) {
+            return url + "+" + JSON.stringify(ajaxHeaders);
+        } else {
+            return url;
+        }
     },
 
     /**
@@ -640,7 +734,7 @@ function processResponse( xhr ){
         throw new Error( $.getString( "Errors.Security" ) );
     } else if ( xhr.status !== 200 && xhr.status !== 0 ) {
         status     = xhr.status;
-        statusText = ( status == 404 ) ?
+        statusText = ( status === 404 ) ?
             "Not Found" :
             xhr.statusText;
         throw new Error( $.getString( "Errors.Status", status, statusText ) );
@@ -654,7 +748,7 @@ function processResponse( xhr ){
         } catch (e){
             data = xhr.responseText;
         }
-    }else if( responseText.match(/\s*[\{\[].*/) ){
+    }else if( responseText.match(/\s*[{[].*/) ){
         try{
           data = $.parseJSON(responseText);
         } catch(e){
@@ -690,6 +784,8 @@ $.TileSource.determineType = function( tileSource, data, url ){
     }
 
     $.console.error( "No TileSource was able to open %s %s", url, data );
+
+    return null;
 };
 
 

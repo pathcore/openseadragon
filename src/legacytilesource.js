@@ -109,10 +109,10 @@ $.extend( $.LegacyTileSource.prototype, $.TileSource.prototype, /** @lends OpenS
     supports: function( data, url ){
         return (
             data.type &&
-            "legacy-image-pyramid" == data.type
+            "legacy-image-pyramid" === data.type
         ) || (
             data.documentElement &&
-            "legacy-image-pyramid" == data.documentElement.getAttribute('type')
+            "legacy-image-pyramid" === data.documentElement.getAttribute('type')
         );
     },
 
@@ -122,10 +122,11 @@ $.extend( $.LegacyTileSource.prototype, $.TileSource.prototype, /** @lends OpenS
      * @function
      * @param {Object|XMLDocument} configuration - the raw configuration
      * @param {String} dataUrl - the url the data was retrieved from if any.
+     * @param {String} postData - HTTP POST data in k=v&k2=v2... form or null
      * @return {Object} options - A dictionary of keyword arguments sufficient
      *      to configure this tile sources constructor.
      */
-    configure: function( configuration, dataUrl ){
+    configure: function( configuration, dataUrl, postData ){
 
         var options;
 
@@ -241,7 +242,7 @@ function configureFromXML( tileSource, xmlDoc ){
         level,
         i;
 
-    if ( rootName == "image" ) {
+    if ( rootName === "image" ) {
 
         try {
             conf = {
@@ -267,9 +268,9 @@ function configureFromXML( tileSource, xmlDoc ){
                 e :
                 new Error( 'Unknown error parsing Legacy Image Pyramid XML.' );
         }
-    } else if ( rootName == "collection" ) {
+    } else if ( rootName === "collection" ) {
         throw new Error( 'Legacy Image Pyramid Collections not yet supported.' );
-    } else if ( rootName == "error" ) {
+    } else if ( rootName === "error" ) {
         throw new Error( 'Error: ' + xmlDoc );
     }
 

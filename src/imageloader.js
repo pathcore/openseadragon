@@ -43,6 +43,8 @@
  * @param {String} [options.loadWithAjax] - Whether to load this image with AJAX.
  * @param {String} [options.ajaxHeaders] - Headers to add to the image request if using AJAX.
  * @param {String} [options.crossOriginPolicy] - CORS policy to use for downloads
+ * @param {String} [options.postData] - HTTP POST data (usually but not necessarily in k=v&k2=v2... form,
+ *      see TileSrouce::getPostData) or null
  * @param {Function} [options.callback] - Called once image has been downloaded.
  * @param {Function} [options.abort] - Called when this image job is aborted.
  * @param {Number} [options.timeout] - The max number of milliseconds that this image job may take to complete.
@@ -96,6 +98,7 @@ ImageJob.prototype = {
                 withCredentials: this.ajaxWithCredentials,
                 headers: this.ajaxHeaders,
                 responseType: "arraybuffer",
+                postData: this.postData,
                 success: function(request) {
                     var blb;
                     // Make the raw data into a blob.
@@ -127,7 +130,7 @@ ImageJob.prototype = {
                     self.image.src = url;
                 },
                 error: function(request) {
-                    self.errorMsg = "Image load aborted - XHR error";
+                    self.errorMsg = "Image load aborted - XHR error: Ajax returned " + request.status;
                     self.finish(false);
                 }
             });
@@ -196,8 +199,10 @@ $.ImageLoader.prototype = {
      * @param {String} [options.loadWithAjax] - Whether to load this image with AJAX.
      * @param {String} [options.ajaxHeaders] - Headers to add to the image request if using AJAX.
      * @param {String|Boolean} [options.crossOriginPolicy] - CORS policy to use for downloads
+     * @param {String} [options.postData] - POST parameters (usually but not necessarily in k=v&k2=v2... form,
+     *      see TileSrouce::getPostData) or null
      * @param {Boolean} [options.ajaxWithCredentials] - Whether to set withCredentials on AJAX
-     * requests.
+     *      requests.
      * @param {Function} [options.callback] - Called once image has been downloaded.
      * @param {Function} [options.abort] - Called when this image job is aborted.
      * @param {Function} [options.CustomImageJob] - A custom image job constructor.
@@ -213,6 +218,7 @@ $.ImageLoader.prototype = {
                 ajaxHeaders: options.loadWithAjax ? options.ajaxHeaders : null,
                 crossOriginPolicy: options.crossOriginPolicy,
                 ajaxWithCredentials: options.ajaxWithCredentials,
+                postData: options.postData,
                 callback: complete,
                 abort: options.abort,
                 timeout: this.timeout
