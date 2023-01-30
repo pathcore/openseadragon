@@ -311,6 +311,22 @@ $.Viewport.prototype = {
     },
 
     /**
+     * Gets the max zoom of the viewport as if it were at a specific maxZoomPixelRatio
+     * @function
+     * @param {Number} pixelRatio Target pixel ratio
+     * @returns {Number}
+     */
+    getMaxZoomAtPixelRatio: function(pixelRatio) {
+        var zoom = this.maxZoomLevel;
+        if (!zoom) {
+            zoom = this._contentSize.x * pixelRatio/this._containerInnerSize.x;
+            zoom /= this._contentBounds.width;
+        }
+
+        return Math.max(zoom, this.getHomeZoom() );
+    }
+
+    /**
      * @function
      */
     getAspectRatio: function() {
